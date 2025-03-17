@@ -10,6 +10,26 @@ const LoginForm = lazy(() => import("./components/auth/LoginForm"));
 const RegisterForm = lazy(() => import("./components/auth/RegisterForm"));
 const ProtectedRoute = lazy(() => import("./components/auth/ProtectedRoute"));
 
+// Lazy load admin components
+const RegistrationsManagement = lazy(
+  () => import("./components/admin/RegistrationsManagement"),
+);
+const PlacementsManagement = lazy(
+  () => import("./components/admin/PlacementsManagement"),
+);
+const SupervisorsManagement = lazy(
+  () => import("./components/admin/SupervisorsManagement"),
+);
+const CertificatesManagement = lazy(
+  () => import("./components/admin/CertificatesManagement"),
+);
+const SettingsManagement = lazy(
+  () => import("./components/admin/SettingsManagement"),
+);
+const LocationManagement = lazy(
+  () => import("./components/admin/LocationManagement"),
+);
+
 function App() {
   return (
     <AuthProvider>
@@ -30,6 +50,19 @@ function App() {
 
             <Route path="/" element={<ProtectedRoute />}>
               <Route index element={<Home />} />
+
+              {/* Admin Routes */}
+              <Route
+                path="registrations"
+                element={<RegistrationsManagement />}
+              />
+              <Route path="placements" element={<PlacementsManagement />} />
+              <Route path="supervisors" element={<SupervisorsManagement />} />
+              <Route path="certificates" element={<CertificatesManagement />} />
+              <Route path="settings" element={<SettingsManagement />} />
+              <Route path="locations" element={<LocationManagement />} />
+
+              {/* Fallback route */}
               <Route path="*" element={<Home />} />
             </Route>
 
