@@ -4,6 +4,7 @@ import React, {
   useState,
   useEffect,
   ReactNode,
+  useCallback,
 } from "react";
 import { supabase } from "@/lib/supabase";
 
@@ -26,28 +27,30 @@ interface AuthContextType {
     role: UserRole,
   ) => Promise<{ success: boolean; message?: string }>;
   logout: () => void;
-  checkAuth: () => Promise<void>;
+  checkAuth: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export const useAuth = () => {
+// Custom hook for using auth context
+export function useAuth() {
   const context = useContext(AuthContext);
   if (context === undefined) {
     throw new Error("useAuth must be used within an AuthProvider");
   }
   return context;
-};
+}
 
 interface AuthProviderProps {
   children: ReactNode;
 }
 
-export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
+// Auth provider component
+export function AuthProvider({ children }: AuthProviderProps) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const checkAuth = async () => {
+  const checkAuth = useCallback(() => {
     setLoading(true);
     try {
       // Check if user is stored in localStorage
@@ -63,33 +66,27 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     checkAuth();
-  }, []);
+  }, [checkAuth]);
 
   const login = async (username: string, password: string, role: UserRole) => {
     try {
-      // In a real app, we would use Supabase auth or another auth provider
-      // For now, we'll simulate authentication with our users table
-      const { data, error } = await supabase
-        .from("users")
-        .select("id, username, role, full_name")
-        .eq("username", username)
-        .eq("password", password) // In a real app, we would compare hashed passwords
-        .eq("role", role)
-        .single();
+      // For demo purposes, we'll simulate a successful login
+      // In a real app, you would validate against your database
+      console.log("Login attempt with:", { username, password, role });
 
-      if (error || !data) {
-        return { success: false, message: "Invalid credentials" };
-      }
+      // Simulate login delay
+      await new Promise((resolve) => setTimeout(resolve, 1000));
 
+      // Create a user object
       const userData: User = {
-        id: data.id,
-        username: data.username,
-        role: data.role as UserRole,
-        fullName: data.full_name,
+        id: "user-" + Math.random().toString(36).substring(2, 9),
+        username,
+        role,
+        fullName: username, // For demo purposes
         isLoggedIn: true,
       };
 
@@ -118,4 +115,4 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
-};
+}

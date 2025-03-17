@@ -1,18 +1,6 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { z } from "zod";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { Button } from "@/components/ui/button";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
+import { useNavigate, Link } from "react-router-dom";
+import { Button } from "../ui/button";
 import {
   Card,
   CardContent,
@@ -20,159 +8,110 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
+} from "../ui/card";
+import { Input } from "../ui/input";
+import { Label } from "../ui/label";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
-import { BookOpen } from "lucide-react";
-
-const formSchema = z.object({
-  username: z.string().min(3, {
-    message: "Username must be at least 3 characters.",
-  }),
-  password: z.string().min(6, {
-    message: "Password must be at least 6 characters.",
-  }),
-  role: z.enum(["student", "supervisor", "admin"]),
-});
-
-type FormValues = z.infer<typeof formSchema>;
+} from "../ui/select";
+import { useAuth } from "@/contexts/AuthContext";
 
 const LoginForm = () => {
   const navigate = useNavigate();
+  const { login } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [role, setRole] = useState<"student" | "supervisor" | "admin">(
+    "student",
+  );
 
-  const form = useForm<FormValues>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      username: "",
-      password: "",
-      role: "student",
-    },
-  });
-
-  const onSubmit = async (values: FormValues) => {
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
     setIsLoading(true);
+
     try {
-      // In a real app, this would be an API call to authenticate
-      console.log("Login attempt with:", values);
-
-      // Simulate login delay
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-
-      // Store user info in localStorage (in a real app, you'd store a token)
-      localStorage.setItem(
-        "pplUser",
-        JSON.stringify({
-          username: values.username,
-          role: values.role,
-          isLoggedIn: true,
-        }),
-      );
-
-      // Redirect to dashboard
-      navigate("/");
+      const result = await login(username, password, role);
+      if (result.success) {
+        navigate("/");
+      } else {
+        alert(result.message || "Login failed");
+      }
     } catch (error) {
-      console.error("Login failed:", error);
+      console.error("Login error:", error);
+      alert("An unexpected error occurred");
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4 py-12 sm:px-6 lg:px-8">
-      <Card className="w-full max-w-md bg-white">
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
+      <Card className="w-full max-w-md">
         <CardHeader className="space-y-1">
-          <div className="flex justify-center mb-4">
-            <div className="rounded-full bg-primary/10 p-3">
-              <BookOpen className="h-8 w-8 text-primary" />
-            </div>
-          </div>
           <CardTitle className="text-2xl font-bold text-center">
             PPL Management System
           </CardTitle>
           <CardDescription className="text-center">
-            Enter your credentials to access your account
+            Enter your credentials to sign in
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-              <FormField
-                control={form.control}
-                name="username"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Username</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Enter your username" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="username">Username</Label>
+              <Input
+                id="username"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                placeholder="Enter your username"
+                required
               />
-              <FormField
-                control={form.control}
-                name="password"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Password</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="password"
-                        placeholder="Enter your password"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="password">Password</Label>
+              <Input
+                id="password"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Enter your password"
+                required
               />
-              <FormField
-                control={form.control}
-                name="role"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Login As</FormLabel>
-                    <Select
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
-                    >
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select your role" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="student">Student</SelectItem>
-                        <SelectItem value="supervisor">Supervisor</SelectItem>
-                        <SelectItem value="admin">Admin</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <Button type="submit" className="w-full" disabled={isLoading}>
-                {isLoading ? "Logging in..." : "Login"}
-              </Button>
-            </form>
-          </Form>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="role">Login As</Label>
+              <Select
+                value={role}
+                onValueChange={(value: "student" | "supervisor" | "admin") =>
+                  setRole(value)
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select your role" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="student">Student</SelectItem>
+                  <SelectItem value="supervisor">Supervisor</SelectItem>
+                  <SelectItem value="admin">Admin</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <Button type="submit" className="w-full" disabled={isLoading}>
+              {isLoading ? "Signing in..." : "Sign In"}
+            </Button>
+          </form>
         </CardContent>
         <CardFooter className="flex flex-col space-y-2">
           <div className="text-sm text-center text-gray-500">
             Don't have an account?{" "}
-            <Button
-              variant="link"
-              className="p-0 h-auto"
-              onClick={() => navigate("/register")}
-            >
-              Register here
-            </Button>
+            <Link to="/register" className="text-primary hover:underline">
+              Register
+            </Link>
           </div>
         </CardFooter>
       </Card>

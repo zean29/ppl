@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -23,6 +24,7 @@ import {
   ChevronRight,
   BookOpen,
 } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
 
 type UserRole = "student" | "supervisor" | "admin";
 
@@ -38,37 +40,106 @@ const Sidebar = ({
   onToggleCollapse = () => {},
 }: SidebarProps) => {
   const [activeItem, setActiveItem] = useState("dashboard");
+  const navigate = useNavigate();
+  const { logout } = useAuth();
 
   const studentNavItems = [
-    { id: "dashboard", label: "Dashboard", icon: <Home size={20} /> },
+    {
+      id: "dashboard",
+      label: "Dashboard",
+      icon: <Home size={20} />,
+      path: "/",
+    },
     {
       id: "registration",
       label: "Registration",
       icon: <ClipboardList size={20} />,
+      path: "/registration",
     },
-    { id: "placement", label: "Placement", icon: <MapPin size={20} /> },
-    { id: "progress", label: "Progress", icon: <FileCheck size={20} /> },
-    { id: "certificate", label: "Certificate", icon: <Award size={20} /> },
+    {
+      id: "placement",
+      label: "Placement",
+      icon: <MapPin size={20} />,
+      path: "/placement",
+    },
+    {
+      id: "progress",
+      label: "Progress",
+      icon: <FileCheck size={20} />,
+      path: "/progress",
+    },
+    {
+      id: "certificate",
+      label: "Certificate",
+      icon: <Award size={20} />,
+      path: "/certificate",
+    },
   ];
 
   const supervisorNavItems = [
-    { id: "dashboard", label: "Dashboard", icon: <Home size={20} /> },
-    { id: "students", label: "Students", icon: <Users size={20} /> },
-    { id: "assessments", label: "Assessments", icon: <BookOpen size={20} /> },
-    { id: "evaluations", label: "Evaluations", icon: <FileCheck size={20} /> },
+    {
+      id: "dashboard",
+      label: "Dashboard",
+      icon: <Home size={20} />,
+      path: "/",
+    },
+    {
+      id: "students",
+      label: "Students",
+      icon: <Users size={20} />,
+      path: "/students",
+    },
+    {
+      id: "assessments",
+      label: "Assessments",
+      icon: <BookOpen size={20} />,
+      path: "/assessments",
+    },
+    {
+      id: "evaluations",
+      label: "Evaluations",
+      icon: <FileCheck size={20} />,
+      path: "/evaluations",
+    },
   ];
 
   const adminNavItems = [
-    { id: "dashboard", label: "Dashboard", icon: <Home size={20} /> },
+    {
+      id: "dashboard",
+      label: "Dashboard",
+      icon: <Home size={20} />,
+      path: "/",
+    },
     {
       id: "registrations",
       label: "Registrations",
       icon: <ClipboardList size={20} />,
+      path: "/registrations",
     },
-    { id: "placements", label: "Placements", icon: <MapPin size={20} /> },
-    { id: "supervisors", label: "Supervisors", icon: <Users size={20} /> },
-    { id: "certificates", label: "Certificates", icon: <Award size={20} /> },
-    { id: "settings", label: "Settings", icon: <Settings size={20} /> },
+    {
+      id: "placements",
+      label: "Placements",
+      icon: <MapPin size={20} />,
+      path: "/placements",
+    },
+    {
+      id: "supervisors",
+      label: "Supervisors",
+      icon: <Users size={20} />,
+      path: "/supervisors",
+    },
+    {
+      id: "certificates",
+      label: "Certificates",
+      icon: <Award size={20} />,
+      path: "/certificates",
+    },
+    {
+      id: "settings",
+      label: "Settings",
+      icon: <Settings size={20} />,
+      path: "/settings",
+    },
   ];
 
   const navItemsMap = {
@@ -79,8 +150,14 @@ const Sidebar = ({
 
   const navItems = navItemsMap[userRole];
 
-  const handleNavItemClick = (id: string) => {
+  const handleNavItemClick = (id: string, path: string) => {
     setActiveItem(id);
+    navigate(path);
+  };
+
+  const handleLogout = async () => {
+    await logout();
+    navigate("/login");
   };
 
   return (
@@ -121,7 +198,7 @@ const Sidebar = ({
                       "w-full justify-start",
                       collapsed ? "px-2" : "px-3",
                     )}
-                    onClick={() => handleNavItemClick(item.id)}
+                    onClick={() => handleNavItemClick(item.id, item.path)}
                   >
                     <span className="mr-2">{item.icon}</span>
                     {!collapsed && <span>{item.label}</span>}
@@ -168,6 +245,7 @@ const Sidebar = ({
                   "w-full justify-start",
                   collapsed ? "px-2" : "px-3",
                 )}
+                onClick={handleLogout}
               >
                 <LogOut size={20} className="mr-2" />
                 {!collapsed && <span>Logout</span>}

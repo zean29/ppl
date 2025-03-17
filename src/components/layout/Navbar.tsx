@@ -1,5 +1,5 @@
 import React from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import {
   DropdownMenu,
@@ -12,6 +12,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { BookOpen, ChevronDown, LogOut, Settings, User } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface NavbarProps {
   userRole?: "student" | "supervisor" | "admin";
@@ -24,6 +25,9 @@ const Navbar = ({
   userName = "John Doe",
   userAvatar = "",
 }: NavbarProps) => {
+  const { logout } = useAuth();
+  const navigate = useNavigate();
+
   const roleBasedLinks = {
     student: [
       { name: "Dashboard", path: "/" },
@@ -46,6 +50,11 @@ const Navbar = ({
   };
 
   const links = roleBasedLinks[userRole] || [];
+
+  const handleLogout = async () => {
+    await logout();
+    navigate("/login");
+  };
 
   return (
     <nav className="w-full h-16 bg-white border-b border-gray-200 shadow-sm fixed top-0 left-0 z-50">
@@ -107,7 +116,7 @@ const Navbar = ({
                 <span>Settings</span>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem>
+              <DropdownMenuItem onClick={handleLogout}>
                 <LogOut className="mr-2 h-4 w-4" />
                 <span>Log out</span>
               </DropdownMenuItem>
