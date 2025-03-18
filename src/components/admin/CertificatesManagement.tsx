@@ -35,6 +35,7 @@ import {
 import Navbar from "../layout/Navbar";
 import Sidebar from "../layout/Sidebar";
 import { useAuth } from "@/contexts/AuthContext";
+import { toast } from "@/components/ui/use-toast";
 
 interface Certificate {
   id: string;
@@ -273,11 +274,102 @@ const CertificatesManagement = () => {
                               </DropdownMenuTrigger>
                               <DropdownMenuContent align="end">
                                 <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                                <DropdownMenuItem>
+                                <DropdownMenuItem
+                                  onClick={() => {
+                                    // In a real app, this would download the certificate
+                                    // For now, we'll just show an alert
+                                    if (certificate.status === "issued") {
+                                      // Create a dummy PDF download
+                                      // Create a simple PDF with certificate information
+                                      const certificateData = `
+                                        Certificate of Completion
+                                        
+                                        This is to certify that
+                                        
+                                        ${certificate.studentName}
+                                        
+                                        has successfully completed the PPL program
+                                        with a grade of ${certificate.grade}
+                                        
+                                        Issued on: ${certificate.issueDate}
+                                        Certificate ID: ${certificate.id}
+                                      `;
+
+                                      // Create a Blob with the certificate data
+                                      const blob = new Blob([certificateData], {
+                                        type: "application/pdf",
+                                      });
+                                      const url = URL.createObjectURL(blob);
+
+                                      const link = document.createElement("a");
+                                      link.href = url;
+                                      link.download = `${certificate.id}_${certificate.studentName.replace(/\s+/g, "_")}.pdf`;
+                                      document.body.appendChild(link);
+                                      link.click();
+                                      document.body.removeChild(link);
+                                      // Clean up the URL object
+                                      URL.revokeObjectURL(url);
+
+                                      toast({
+                                        title: "Certificate Downloaded",
+                                        description: `Certificate for ${certificate.studentName} has been downloaded.`,
+                                      });
+                                    } else {
+                                      toast({
+                                        title: "Cannot Download",
+                                        description:
+                                          "Certificate must be issued before it can be downloaded.",
+                                        variant: "destructive",
+                                      });
+                                    }
+                                  }}
+                                >
                                   <Download className="h-4 w-4 mr-2" />
                                   Download Certificate
                                 </DropdownMenuItem>
-                                <DropdownMenuItem>
+                                <DropdownMenuItem
+                                  onClick={() => {
+                                    // In a real app, this would open a dialog with the certificate preview
+                                    // For now, we'll just show an alert
+                                    if (certificate.status === "issued") {
+                                      // Create a simple PDF with certificate information
+                                      const certificateData = `
+                                        Certificate of Completion
+                                        
+                                        This is to certify that
+                                        
+                                        ${certificate.studentName}
+                                        
+                                        has successfully completed the PPL program
+                                        with a grade of ${certificate.grade}
+                                        
+                                        Issued on: ${certificate.issueDate}
+                                        Certificate ID: ${certificate.id}
+                                      `;
+
+                                      // Create a Blob with the certificate data
+                                      const blob = new Blob([certificateData], {
+                                        type: "application/pdf",
+                                      });
+                                      const url = URL.createObjectURL(blob);
+
+                                      // Open in a new tab
+                                      window.open(url, "_blank");
+
+                                      // Clean up after a delay to ensure the window has time to load the URL
+                                      setTimeout(() => {
+                                        URL.revokeObjectURL(url);
+                                      }, 1000);
+                                    } else {
+                                      toast({
+                                        title: "Cannot View",
+                                        description:
+                                          "Certificate must be issued before it can be viewed.",
+                                        variant: "destructive",
+                                      });
+                                    }
+                                  }}
+                                >
                                   <Award className="h-4 w-4 mr-2" />
                                   View Certificate
                                 </DropdownMenuItem>

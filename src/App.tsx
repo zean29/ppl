@@ -30,6 +30,29 @@ const LocationManagement = lazy(
   () => import("./components/admin/LocationManagement"),
 );
 
+// Lazy load student components
+const StudentDashboard = lazy(() => import("./components/student/Dashboard"));
+const StudentRegistration = lazy(
+  () => import("./components/student/RegistrationForm"),
+);
+const StudentPlacement = lazy(
+  () => import("./components/student/PlacementSelection"),
+);
+const StudentCertificate = lazy(
+  () => import("./components/student/CertificateDownload"),
+);
+
+// Lazy load supervisor components
+const SupervisorDashboard = lazy(
+  () => import("./components/supervisor/Dashboard"),
+);
+const SupervisorStudentList = lazy(
+  () => import("./components/supervisor/StudentList"),
+);
+const SupervisorAssessment = lazy(
+  () => import("./components/supervisor/AssessmentForm"),
+);
+
 function App() {
   return (
     <AuthProvider>
@@ -61,6 +84,39 @@ function App() {
               <Route path="certificates" element={<CertificatesManagement />} />
               <Route path="settings" element={<SettingsManagement />} />
               <Route path="locations" element={<LocationManagement />} />
+
+              {/* Student Routes */}
+              <Route path="student">
+                <Route index element={<StudentDashboard view="overview" />} />
+                <Route
+                  path="registration"
+                  element={<StudentDashboard view="registration" />}
+                />
+                <Route
+                  path="placement"
+                  element={<StudentDashboard view="placement" />}
+                />
+                <Route
+                  path="certificate"
+                  element={<StudentDashboard view="certificate" />}
+                />
+              </Route>
+
+              {/* Supervisor Routes */}
+              <Route path="supervisor">
+                <Route
+                  index
+                  element={<SupervisorDashboard view="overview" />}
+                />
+                <Route
+                  path="students"
+                  element={<SupervisorDashboard view="students" />}
+                />
+                <Route
+                  path="assessment/:studentId?"
+                  element={<SupervisorDashboard view="assessment" />}
+                />
+              </Route>
 
               {/* Fallback route */}
               <Route path="*" element={<Home />} />

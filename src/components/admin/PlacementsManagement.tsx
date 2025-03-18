@@ -29,6 +29,24 @@ import { MoreHorizontal, Search, MapPin, User, Calendar } from "lucide-react";
 import Navbar from "../layout/Navbar";
 import Sidebar from "../layout/Sidebar";
 import { useAuth } from "@/contexts/AuthContext";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import { toast } from "@/components/ui/use-toast";
 
 interface Placement {
   id: string;
@@ -46,6 +64,14 @@ const PlacementsManagement = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string | null>(null);
   const [collapsed, setCollapsed] = useState(false);
+  const [selectedPlacement, setSelectedPlacement] = useState<Placement | null>(
+    null,
+  );
+  const [isViewDetailsOpen, setIsViewDetailsOpen] = useState(false);
+  const [isEditPlacementOpen, setIsEditPlacementOpen] = useState(false);
+  const [isChangeSupervisorOpen, setIsChangeSupervisorOpen] = useState(false);
+  const [isChangeLocationOpen, setIsChangeLocationOpen] = useState(false);
+  const [isCancelPlacementOpen, setIsCancelPlacementOpen] = useState(false);
 
   // Mock data
   const placements: Placement[] = [
@@ -300,21 +326,47 @@ const PlacementsManagement = () => {
                               </DropdownMenuTrigger>
                               <DropdownMenuContent align="end">
                                 <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                                <DropdownMenuItem>
+                                <DropdownMenuItem
+                                  onClick={() => {
+                                    setSelectedPlacement(placement);
+                                    setIsViewDetailsOpen(true);
+                                  }}
+                                >
                                   View Details
                                 </DropdownMenuItem>
                                 <DropdownMenuSeparator />
-                                <DropdownMenuItem>
+                                <DropdownMenuItem
+                                  onClick={() => {
+                                    setSelectedPlacement(placement);
+                                    setIsEditPlacementOpen(true);
+                                  }}
+                                >
                                   Edit Placement
                                 </DropdownMenuItem>
-                                <DropdownMenuItem>
+                                <DropdownMenuItem
+                                  onClick={() => {
+                                    setSelectedPlacement(placement);
+                                    setIsChangeSupervisorOpen(true);
+                                  }}
+                                >
                                   Change Supervisor
                                 </DropdownMenuItem>
-                                <DropdownMenuItem>
+                                <DropdownMenuItem
+                                  onClick={() => {
+                                    setSelectedPlacement(placement);
+                                    setIsChangeLocationOpen(true);
+                                  }}
+                                >
                                   Change Location
                                 </DropdownMenuItem>
                                 <DropdownMenuSeparator />
-                                <DropdownMenuItem className="text-red-600">
+                                <DropdownMenuItem
+                                  className="text-red-600"
+                                  onClick={() => {
+                                    setSelectedPlacement(placement);
+                                    setIsCancelPlacementOpen(true);
+                                  }}
+                                >
                                   Cancel Placement
                                 </DropdownMenuItem>
                               </DropdownMenuContent>
@@ -330,6 +382,397 @@ const PlacementsManagement = () => {
           </div>
         </main>
       </div>
+
+      {/* View Details Dialog */}
+      <Dialog open={isViewDetailsOpen} onOpenChange={setIsViewDetailsOpen}>
+        <DialogContent className="sm:max-w-[600px]">
+          <DialogHeader>
+            <DialogTitle>Placement Details</DialogTitle>
+            <DialogDescription>
+              Detailed information about the placement.
+            </DialogDescription>
+          </DialogHeader>
+          {selectedPlacement && (
+            <div className="grid gap-4 py-4">
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label className="text-right font-medium">Placement ID</Label>
+                <div className="col-span-3">{selectedPlacement.id}</div>
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label className="text-right font-medium">Student</Label>
+                <div className="col-span-3">
+                  <div>{selectedPlacement.studentName}</div>
+                  <div className="text-sm text-muted-foreground">
+                    {selectedPlacement.studentId}
+                  </div>
+                </div>
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label className="text-right font-medium">Location</Label>
+                <div className="col-span-3">{selectedPlacement.location}</div>
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label className="text-right font-medium">Supervisor</Label>
+                <div className="col-span-3">{selectedPlacement.supervisor}</div>
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label className="text-right font-medium">Period</Label>
+                <div className="col-span-3">
+                  {selectedPlacement.startDate} to {selectedPlacement.endDate}
+                </div>
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label className="text-right font-medium">Status</Label>
+                <div className="col-span-3">
+                  {getStatusBadge(selectedPlacement.status)}
+                </div>
+              </div>
+            </div>
+          )}
+          <DialogFooter>
+            <Button onClick={() => setIsViewDetailsOpen(false)}>Close</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Placement Dialog */}
+      <Dialog open={isEditPlacementOpen} onOpenChange={setIsEditPlacementOpen}>
+        <DialogContent className="sm:max-w-[600px]">
+          <DialogHeader>
+            <DialogTitle>Edit Placement</DialogTitle>
+            <DialogDescription>Update the placement details.</DialogDescription>
+          </DialogHeader>
+          {selectedPlacement && (
+            <div className="grid gap-4 py-4">
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="edit-start-date" className="text-right">
+                  Start Date
+                </Label>
+                <Input
+                  id="edit-start-date"
+                  type="date"
+                  className="col-span-3"
+                  defaultValue={selectedPlacement.startDate}
+                />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="edit-end-date" className="text-right">
+                  End Date
+                </Label>
+                <Input
+                  id="edit-end-date"
+                  type="date"
+                  className="col-span-3"
+                  defaultValue={selectedPlacement.endDate}
+                />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="edit-status" className="text-right">
+                  Status
+                </Label>
+                <Select defaultValue={selectedPlacement.status}>
+                  <SelectTrigger id="edit-status" className="col-span-3">
+                    <SelectValue placeholder="Select status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="pending">Pending</SelectItem>
+                    <SelectItem value="active">Active</SelectItem>
+                    <SelectItem value="completed">Completed</SelectItem>
+                    <SelectItem value="cancelled">Cancelled</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          )}
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setIsEditPlacementOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={() => {
+                // Here we would normally update the placement in the database
+                // For now we'll just show a success message and close the dialog
+                // Get the updated values from the form
+                const startDateInput = document.getElementById(
+                  "edit-start-date",
+                ) as HTMLInputElement;
+                const endDateInput = document.getElementById(
+                  "edit-end-date",
+                ) as HTMLInputElement;
+
+                // Get the selected value from the Select component
+                // This is a more reliable way to get the value
+                const selectElement = document.querySelector(
+                  "#edit-status",
+                ) as HTMLSelectElement;
+
+                // Create a copy of the placements array
+                const updatedPlacements = [...placements];
+
+                // Find the index of the placement to update
+                const placementIndex = updatedPlacements.findIndex(
+                  (p) => p.id === selectedPlacement?.id,
+                );
+
+                // If the placement is found, update it
+                if (placementIndex !== -1) {
+                  updatedPlacements[placementIndex] = {
+                    ...updatedPlacements[placementIndex],
+                    startDate:
+                      startDateInput?.value ||
+                      updatedPlacements[placementIndex].startDate,
+                    endDate:
+                      endDateInput?.value ||
+                      updatedPlacements[placementIndex].endDate,
+                    status: (selectElement?.value ||
+                      updatedPlacements[placementIndex].status) as
+                      | "pending"
+                      | "active"
+                      | "completed"
+                      | "cancelled",
+                  };
+                }
+
+                // In a real app, we would update the state with the new placements
+                // and also update the database
+
+                toast({
+                  title: "Placement updated",
+                  description: "The placement has been successfully updated.",
+                });
+                setIsEditPlacementOpen(false);
+              }}
+            >
+              Save Changes
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Change Supervisor Dialog */}
+      <Dialog
+        open={isChangeSupervisorOpen}
+        onOpenChange={setIsChangeSupervisorOpen}
+      >
+        <DialogContent className="sm:max-w-[600px]">
+          <DialogHeader>
+            <DialogTitle>Change Supervisor</DialogTitle>
+            <DialogDescription>
+              Assign a different supervisor to this placement.
+            </DialogDescription>
+          </DialogHeader>
+          {selectedPlacement && (
+            <div className="grid gap-4 py-4">
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label className="text-right font-medium">
+                  Current Supervisor
+                </Label>
+                <div className="col-span-3">{selectedPlacement.supervisor}</div>
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="new-supervisor" className="text-right">
+                  New Supervisor
+                </Label>
+                <Select>
+                  <SelectTrigger id="new-supervisor" className="col-span-3">
+                    <SelectValue placeholder="Select a supervisor" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="dr-robert-johnson">
+                      Dr. Robert Johnson
+                    </SelectItem>
+                    <SelectItem value="prof-maria-garcia">
+                      Prof. Maria Garcia
+                    </SelectItem>
+                    <SelectItem value="dr-james-wilson">
+                      Dr. James Wilson
+                    </SelectItem>
+                    <SelectItem value="prof-linda-martinez">
+                      Prof. Linda Martinez
+                    </SelectItem>
+                    <SelectItem value="dr-michael-brown">
+                      Dr. Michael Brown
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="change-reason" className="text-right">
+                  Reason for Change
+                </Label>
+                <Textarea
+                  id="change-reason"
+                  placeholder="Explain why the supervisor is being changed"
+                  className="col-span-3"
+                />
+              </div>
+            </div>
+          )}
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setIsChangeSupervisorOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={() => {
+                toast({
+                  title: "Supervisor changed",
+                  description: "The supervisor has been successfully changed.",
+                });
+                setIsChangeSupervisorOpen(false);
+              }}
+            >
+              Save Changes
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Change Location Dialog */}
+      <Dialog
+        open={isChangeLocationOpen}
+        onOpenChange={setIsChangeLocationOpen}
+      >
+        <DialogContent className="sm:max-w-[600px]">
+          <DialogHeader>
+            <DialogTitle>Change Location</DialogTitle>
+            <DialogDescription>
+              Assign a different location to this placement.
+            </DialogDescription>
+          </DialogHeader>
+          {selectedPlacement && (
+            <div className="grid gap-4 py-4">
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label className="text-right font-medium">
+                  Current Location
+                </Label>
+                <div className="col-span-3">{selectedPlacement.location}</div>
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="new-location" className="text-right">
+                  New Location
+                </Label>
+                <Select>
+                  <SelectTrigger id="new-location" className="col-span-3">
+                    <SelectValue placeholder="Select a location" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="city-high-school">
+                      City High School
+                    </SelectItem>
+                    <SelectItem value="westside-academy">
+                      Westside Academy
+                    </SelectItem>
+                    <SelectItem value="eastside-college">
+                      Eastside College
+                    </SelectItem>
+                    <SelectItem value="north-technical-institute">
+                      North Technical Institute
+                    </SelectItem>
+                    <SelectItem value="south-community-school">
+                      South Community School
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="location-change-reason" className="text-right">
+                  Reason for Change
+                </Label>
+                <Textarea
+                  id="location-change-reason"
+                  placeholder="Explain why the location is being changed"
+                  className="col-span-3"
+                />
+              </div>
+            </div>
+          )}
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setIsChangeLocationOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={() => {
+                toast({
+                  title: "Location changed",
+                  description: "The location has been successfully changed.",
+                });
+                setIsChangeLocationOpen(false);
+              }}
+            >
+              Save Changes
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Cancel Placement Dialog */}
+      <Dialog
+        open={isCancelPlacementOpen}
+        onOpenChange={setIsCancelPlacementOpen}
+      >
+        <DialogContent className="sm:max-w-[600px]">
+          <DialogHeader>
+            <DialogTitle>Cancel Placement</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to cancel this placement? This action cannot
+              be undone.
+            </DialogDescription>
+          </DialogHeader>
+          {selectedPlacement && (
+            <div className="grid gap-4 py-4">
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label className="text-right font-medium">Placement ID</Label>
+                <div className="col-span-3">{selectedPlacement.id}</div>
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label className="text-right font-medium">Student</Label>
+                <div className="col-span-3">
+                  {selectedPlacement.studentName}
+                </div>
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="cancel-reason" className="text-right">
+                  Reason for Cancellation
+                </Label>
+                <Textarea
+                  id="cancel-reason"
+                  placeholder="Explain why this placement is being cancelled"
+                  className="col-span-3"
+                />
+              </div>
+            </div>
+          )}
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setIsCancelPlacementOpen(false)}
+            >
+              No, Keep Placement
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={() => {
+                toast({
+                  title: "Placement cancelled",
+                  description: "The placement has been successfully cancelled.",
+                });
+                setIsCancelPlacementOpen(false);
+              }}
+            >
+              Yes, Cancel Placement
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

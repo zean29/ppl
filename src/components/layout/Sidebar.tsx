@@ -48,31 +48,31 @@ const Sidebar = ({
       id: "dashboard",
       label: "Dashboard",
       icon: <Home size={20} />,
-      path: "/",
+      path: "/student",
     },
     {
       id: "registration",
       label: "Registration",
       icon: <ClipboardList size={20} />,
-      path: "/registration",
+      path: "/student/registration",
     },
     {
       id: "placement",
-      label: "Placement",
+      label: "View Placement",
       icon: <MapPin size={20} />,
-      path: "/placement",
+      path: "/student/placement",
     },
     {
       id: "progress",
       label: "Progress",
       icon: <FileCheck size={20} />,
-      path: "/progress",
+      path: "/student/progress",
     },
     {
       id: "certificate",
       label: "Certificate",
       icon: <Award size={20} />,
-      path: "/certificate",
+      path: "/student/certificate",
     },
   ];
 
@@ -81,25 +81,25 @@ const Sidebar = ({
       id: "dashboard",
       label: "Dashboard",
       icon: <Home size={20} />,
-      path: "/",
+      path: "/supervisor",
     },
     {
       id: "students",
       label: "Students",
       icon: <Users size={20} />,
-      path: "/students",
+      path: "/supervisor/students",
     },
     {
       id: "assessments",
       label: "Assessments",
       icon: <BookOpen size={20} />,
-      path: "/assessments",
+      path: "/supervisor/assessment",
     },
     {
       id: "evaluations",
       label: "Evaluations",
       icon: <FileCheck size={20} />,
-      path: "/evaluations",
+      path: "/supervisor/evaluations",
     },
   ];
 
